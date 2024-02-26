@@ -42,8 +42,12 @@ void setup() {
   MQ9Sensor_Setup();
   MQ135Sensor_Setup();
 
-  Serial.print("MQ2 Result\t"); Serial.print("MQ3 Result\t"); Serial.print("MQ5 Result\t"); Serial.print("MQ9 Result\t\t"); Serial.println("MQ135 Result\t\t\t");
-  Serial.print("| Propane |"); Serial.print(" Benzene |  Hexane |"); Serial.print(" H2 |  Alcohol |"); Serial.print(" LPG | CH4 | CO |"); Serial.println(" CO2 | Toluen | NH4 | Aceton |");}
+  Serial.println("------------------------------------------------------------------------------------------------------------------------------------");
+  Serial.print("| Propane |  Benzene |  Hexane  |    H2    |  Alcohol |    LPG   |    CH4   |    CO    |");
+  Serial.println("    CO2   |  Toluen  |    NH4   |  Aceton  |");
+  Serial.println("------------------------------------------------------------------------------------------------------------------------------------");
+}
+
 
 void loop() {
   //MQ2 Sensor
@@ -60,6 +64,9 @@ void loop() {
 
   //MQ135Sensor
   MQ135Sensor_Print();
+
+  Serial.println();
+  delay(1000);
 }
 
 void MQ2Sensor_Setup() {
@@ -88,10 +95,10 @@ void MQ2Sensor_Print(){
   MQ2.setA(658.71); MQ2.setB(-2.168);
   float Propane = MQ2.readSensor();
 
-  Serial.print("| "); Serial.print(Propane);
-  Serial.print("  |");
-
-  delay(1000);
+  Serial.print("|");
+  String propaneStr = String(Propane, 2); // 소수점 둘째자리까지 문자열로 변환
+  printPadded(propaneStr, 8); // 8자리 폭으로 출력
+  Serial.print(" | ");
 }
 
 void MQ3Sensor_Setup(){
@@ -117,17 +124,19 @@ void MQ3Sensor_Setup(){
 void MQ3Sensor_Print(){
   MQ3.update();
  
-  MQ3.setA(987.99); MQ3.setB(-2.162);
+  MQ3.setA(4.8387); MQ3.setB(-2.68);
   float Benzene = MQ3.readSensor();
 
-  MQ3.setA(3616.1); MQ3.setB(-2.675);
+  MQ3.setA(7585.3); MQ3.setB(-2.849);
   float Hexane = MQ3.readSensor();
 
-  Serial.print(Benzene);
-  Serial.print("  | "); Serial.print(Hexane);
-  Serial.print("  |");
+  String BenzeneStr = String(Benzene, 2); 
+  printPadded(BenzeneStr, 8); 
+  Serial.print(" | ");
 
-  delay(1000);
+  String HexaneStr = String(Hexane, 2); // 소수점 둘째자리까지 문자열로 변환
+  printPadded(HexaneStr, 8); // 8자리 폭으로 출력
+  Serial.print(" | ");
 }
 
 void MQ5Sensor_Setup(){
@@ -158,11 +167,13 @@ void MQ5Sensor_Print(){
   MQ5.setA(97124); MQ5.setB(-4.918);
   float Alcohol = MQ5.readSensor();
 
-  Serial.print(H2);
-  Serial.print("  | "); Serial.print(Alcohol);
-  Serial.print("  |");
+  String H2Str = String(H2, 2); 
+  printPadded(H2Str, 8); 
+  Serial.print(" | ");
 
-  delay(1000);
+  String AlcoholStr = String(Alcohol, 2); 
+  printPadded(AlcoholStr, 8); 
+  Serial.print(" | ");
 }
 
 void MQ9Sensor_Setup(){
@@ -197,12 +208,17 @@ void MQ9Sensor_Print(){
   MQ9.setA(599.65); MQ9.setB(-2.244);
   float CO = MQ9.readSensor();
 
-  Serial.print(LPG);
-  Serial.print("  | "); Serial.print(CH4);
-  Serial.print("  | "); Serial.print(CO);
-  Serial.print("  |");
+  String LPGStr = String(LPG, 2); 
+  printPadded(LPGStr, 8); 
+  Serial.print(" | ");
 
-  delay(1000);
+  String CH4Str = String(CH4, 2); 
+  printPadded(CH4Str, 8); 
+  Serial.print(" | ");
+
+  String COStr = String(CO, 2); 
+  printPadded(COStr, 8); 
+  Serial.print(" | ");
 }
 
 
@@ -240,11 +256,27 @@ void MQ135Sensor_Print(){
   MQ135.setA(34.668); MQ135.setB(-3.369);
   float Aceton = MQ135.readSensor();
 
-  Serial.print(CO2);
-  Serial.print("  | "); Serial.print(Toluen);
-  Serial.print("  | "); Serial.print(NH4);
-  Serial.print("  | "); Serial.print(Aceton);
-  Serial.println("  |");
+  String CO2Str = String(CO2, 2); 
+  printPadded(CO2Str, 8); 
+  Serial.print(" | ");
 
-  delay(1000);
+  String ToluenStr = String(Toluen, 2); 
+  printPadded(ToluenStr, 8); 
+  Serial.print(" | ");
+  
+  String NH4Str = String(NH4, 2); 
+  printPadded(NH4Str, 8); 
+  Serial.print(" | ");
+
+  String AcetonStr = String(Aceton, 2); 
+  printPadded(AcetonStr, 8); 
+  Serial.print(" | ");
+}
+
+void printPadded(String data, int width) {
+  int padding = width - data.length(); // 필요한 패딩 계산
+  for(int i = 0; i < padding; i++) {
+    Serial.print(" "); // 공백으로 패딩 추가
+  }
+  Serial.print(data); // 데이터 출력
 }
