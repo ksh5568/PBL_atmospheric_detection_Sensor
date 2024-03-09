@@ -282,7 +282,7 @@ void printPadded(String data, int width) {
 }
 
 
-void Send_msg (String msg, float data_a){
+void Send_msg (String msg){
   unsigned long currentMillis = millis(); 
    
   // 일정 시간(interval)마다 데이터 전송
@@ -290,6 +290,5 @@ void Send_msg (String msg, float data_a){
     previousMillis = currentMillis;
     
   Serial.write(msg);
-  Serial.write(data_a);
 }
 }
