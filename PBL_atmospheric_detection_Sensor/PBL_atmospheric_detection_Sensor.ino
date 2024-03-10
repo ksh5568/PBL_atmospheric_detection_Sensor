@@ -1,4 +1,5 @@
 #include <MQUnifiedsensor.h>
+#include <Arduino.h>
 
 //Basic Setting
 #define Board "Arduino MEGA 2560"
@@ -32,6 +33,9 @@ MQUnifiedsensor MQ3(Board, Voltage_Resolution, ADC_Bit_Resolution, Pin_B, Type_B
 MQUnifiedsensor MQ5(Board, Voltage_Resolution, ADC_Bit_Resolution, Pin_C, Type_C);
 MQUnifiedsensor MQ9(Board, Voltage_Resolution, ADC_Bit_Resolution, Pin_D, Type_D);
 MQUnifiedsensor MQ135(Board, Voltage_Resolution, ADC_Bit_Resolution, Pin_E, Type_E);
+
+const unsigned long interval = 2000; // 2초 (단위: 밀리초)
+unsigned long previousMillis = 0;
 
 void setup() {
  
@@ -99,6 +103,14 @@ void MQ2Sensor_Print(){
   String propaneStr = String(Propane, 2); // 소수점 둘째자리까지 문자열로 변환
   printPadded(propaneStr, 8); // 8자리 폭으로 출력
   Serial.print(" | ");
+
+  float PropaneThreshold = 2000.0; 
+
+  String Pro;
+
+  if(Propane > PropaneThreshold) {
+    Send_msg(Pro);
+  }
 }
 
 void MQ3Sensor_Setup(){
@@ -137,6 +149,20 @@ void MQ3Sensor_Print(){
   String HexaneStr = String(Hexane, 2); // 소수점 둘째자리까지 문자열로 변환
   printPadded(HexaneStr, 8); // 8자리 폭으로 출력
   Serial.print(" | ");
+
+  // 각 센서 값에 대한 기준치 설정
+  float BenzeneThreshold = 100.0; // Benzene 기준치 예시
+  float HexaneThreshold = 50.0; // Hexane 기준치 예시
+
+  String Ben;
+  String Hex;
+
+  if(Benzene > BenzeneThreshold) {
+    Send_msg(Ben);
+  }
+  if(Hexane > HexaneThreshold) {
+    Send_msg(Hex);
+  }
 }
 
 void MQ5Sensor_Setup(){
@@ -174,6 +200,19 @@ void MQ5Sensor_Print(){
   String AlcoholStr = String(Alcohol, 2); 
   printPadded(AlcoholStr, 8); 
   Serial.print(" | ");
+
+  float H2Threshold = 1000.0; // H2 기준치 예시
+  float AlcoholThreshold = 400.0; // Alcohol 기준치 예시
+
+  String H;
+  String Alc;
+
+  if(H2 > H2Threshold) {
+    Send_msg(H);
+  }
+  if(Alcohol > AlcoholThreshold) {
+    Send_msg(Alc); 
+  }
 }
 
 void MQ9Sensor_Setup(){
@@ -219,6 +258,24 @@ void MQ9Sensor_Print(){
   String COStr = String(CO, 2); 
   printPadded(COStr, 8); 
   Serial.print(" | ");
+
+  float LPGThreshold = 2000.0; // LPG 기준치 예시
+  float CH4Threshold = 5000.0; // CH4 기준치 예시
+  float COThreshold = 30.0; // CO 기준치 예시
+
+  String L;
+  String Ch;
+  String Co;
+
+  if(LPG > LPGThreshold) {
+    Send_msg(L);
+  }
+  if(CH4 > CH4Threshold) {
+    Send_msg(Ch);
+  }
+  if(CO > COThreshold) {
+    Send_msg(Co);
+  }
 }
 
 
@@ -271,6 +328,31 @@ void MQ135Sensor_Print(){
   String AcetonStr = String(Aceton, 2); 
   printPadded(AcetonStr, 8); 
   Serial.print(" | ");
+
+    // 기준치 설정
+  float CO2Threshold = 1000.0; // CO2의 기준치 예시
+  float ToluenThreshold = 300.0; // Toluen의 기준치 예시
+  float NH4Threshold = 400.0; // NH4의 기준치 예시
+  float AcetonThreshold = 250.0; // Aceton의 기준치 예시
+
+  String Coo;
+  String Tol;
+  String Nh;
+  String Ace;
+
+  if(CO2 > CO2Threshold) {
+    Send_msg(Coo);
+  }
+  if(Toluen > ToluenThreshold) {
+    Send_msg(Tol);
+  }
+  if(NH4 > NH4Threshold) {
+    Send_msg(Nh);
+  }
+  if(Aceton > AcetonThreshold) {
+    Send_msg(Ace);
+  }
+  
 }
 
 void printPadded(String data, int width) {
@@ -281,7 +363,6 @@ void printPadded(String data, int width) {
   Serial.print(data); // 데이터 출력
 }
 
-
 void Send_msg (String msg){
   unsigned long currentMillis = millis(); 
    
@@ -289,6 +370,6 @@ void Send_msg (String msg){
   if (currentMillis - previousMillis >= interval) {
     previousMillis = currentMillis;
     
-  Serial.write(msg);
+  Serial.write("msg");
 }
 }
