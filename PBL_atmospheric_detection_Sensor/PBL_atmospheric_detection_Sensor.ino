@@ -370,6 +370,6 @@ void Send_msg (String msg){
   if (currentMillis - previousMillis >= interval) {
     previousMillis = currentMillis;
     
-  Serial.write("msg");
+  Serial.write(msg);
 }
 }
