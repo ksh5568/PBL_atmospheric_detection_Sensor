@@ -35,57 +35,57 @@ void loop()
      }
      else if (receivedType = "Benzene"){
       if (receivedData > BenzeneThreshold){
-       
+        GLCD.print("Benzene Warning");  
       }
      }
      else if (receivedType = "Hexane"){
       if (receivedData > HexaneThreshold){
-     
+        GLCD.print("Hexane Warning");
       }
      }
      else if (receivedType = "H2"){
       if (receivedData > H2Threshold){
-     
+        GLCD.print("H2 Warning");
       }
     }
     else if (receivedType = "Alcohol"){
      if (receivedData > AlcoholThreshold){
-     
+       GLCD.print("Alcohol Warning");
      }
     }
     else if (receivedType = "LPG"){
       if (receivedData > LPGThreshold){
-     
+        GLCD.print("LPG Warning");
      }
     }
     else if (receivedType = "CH4"){
       if (receivedData > CH4Threshold){
-     
+        GLCD.print("CH4 Warning");
       }
     }
     else if (receivedType = "CO"){
       if (receivedData > COThreshold){
-     
+        GLCD.print("CO Warning");
       }
     }
     else if (receivedType = "CO2"){
       if (receivedData > CO2Threshold){
-     
+        GLCD.print("CO2 Warning");
       }
     }
     else if (receivedType = "Tolueun"){
       if (receivedData > ToluenThreshold){
-     
+        GLCD.print("Tolueun Warning");
       }
     }
     else if (receivedType = "NH4"){
       if (receivedData > NH4Threshold){
-     
+        GLCD.print("NH4 Warning");
       }
     }
     else if (receivedType = "Aceton"){
       if (receivedData > AcetonThreshold){
-     
+        GLCD.print("Aceton Warning");
       }
     }
   }
