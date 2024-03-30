@@ -16,6 +16,6 @@ void loop()
   {
     String receivedData = Serial.readString();
     GLCD.print(receivedData + "Warning");
-    Serial.print(receivedData + "Warning")
+    Serial.print(receivedData + "Warning");
   }
 }
