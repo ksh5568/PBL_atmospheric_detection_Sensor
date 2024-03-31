@@ -40,7 +40,7 @@ MQUnifiedsensor MQ135(Board, Voltage_Resolution, ADC_Bit_Resolution, Pin_E, Type
 File dataFile;
 swRTC rtc;
 
-const unsigned long interval = 1000;
+const unsigned long interval = 2000;
 unsigned long previousMillis = 0;
 String msg;
 String sensorData;
@@ -94,7 +94,7 @@ void setup() {
   Serial.println("|  Time  | Propane |  Benzene |  Hexane  |    H2    |  Alcohol |    LPG   |    CH4   |    CO    |    CO2   |  Toluen  |    NH4   |  Aceton  |");
   Serial.println("---------------------------------------------------------------------------------------------------------------------------------------------------");
 
-  delay(1000);
+  delay(2000);
 }
   
 void loop() {
