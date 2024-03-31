@@ -1,6 +1,5 @@
 #include <MQUnifiedsensor.h>
 #include <Arduino.h>
-#include <Wire.h>
 #include <SPI.h>
 #include <SD.h>
 #include <swRTC.h>
@@ -41,16 +40,16 @@ MQUnifiedsensor MQ135(Board, Voltage_Resolution, ADC_Bit_Resolution, Pin_E, Type
 File dataFile;
 swRTC rtc;
 
-const unsigned long interval = 1000; // 2초 (단위: 밀리초)
+const unsigned long interval = 1000;
 unsigned long previousMillis = 0;
 String msg;
 String sensorData;
 
-struct GasThreshold {
-  String name;
-  float threshold;
-};
-  
+void setupSensor(MQUnifiedsensor& sensor, float ratioCleanAir, String sensorType);
+void printSensorData(MQUnifiedsensor& sensor, float a, float b, String dataType);
+void checkSensorConnection(float calcR0);
+void swrtc_setup();
+
 void setup() {
   Serial.begin(9600);
 
@@ -99,7 +98,6 @@ void setup() {
 }
   
 void loop() {
-
   sensorData ="";
 
   // MQ-2 센서 데이터 출력
@@ -150,7 +148,16 @@ void loop() {
     Serial.println("Error opening file");
     }
 
-  delay(1000);
+   msg = "Warning";
+
+   char sendData[100];
+   // 일정 시간(interval)마다 데이터 전송
+   unsigned long currentMillis = millis();  
+   if (currentMillis - previousMillis >= interval) {
+    previousMillis = currentMillis; // 이전 시간 업데이트
+    sprintf(sendData, "%s", msg.c_str());
+    Serial.write(sendData);
+  }  
 }
   
 void setupSensor(MQUnifiedsensor& sensor, float ratioCleanAir, String sensorType) {
@@ -175,8 +182,6 @@ void printSensorData(MQUnifiedsensor& sensor, float a, float b, String dataType)
   sensor.setB(b);
   float reading = sensor.readSensor();
   sensorData += padToWidth(String(reading, 2), 8) + " | ";
-
-  CheckThresholdAndWarn(dataType, reading);
 }
   
 void checkSensorConnection(float calcR0) {
@@ -202,44 +207,4 @@ void swrtc_setup() {
   rtc.setTime(0,0,0);    //시간, 분, 초 초기화
   rtc.setDate(29,3,2024);  //일, 월, 년도 초기화 
   rtc.startRTC();          //시작
-}
-
-void CheckThresholdAndWarn(String dataType, float reading) {
-  // 가스별 임계값 정의
-  GasThreshold thresholds[] = {
-    {"Propane", 500.0},
-    {"Benzene", 500.0},
-    {"Hexane", 500.0},
-    {"H2", 500.0},
-    {"Alcohol", 500.0},
-    {"LPG", 1.0},
-    {"CH4", 500.0},
-    {"CO", 500.0},
-    {"CO2", 500.0},
-    {"Toluen", 600.0},
-    {"NH4", 1000.0},
-    {"Aceton", 500.0}
-  };
-  
-  // 가스 종류 개수
-  int numGases = sizeof(thresholds) / sizeof(GasThreshold);
-
-  // 가스별 임계값 검사
-  for (int i = 0; i < numGases; i++) {
-    if (dataType == thresholds[i].name && reading > thresholds[i].threshold) {
-      Send_Warning(dataType);
-      break; // 매칭되는 가스를 찾으면 반복 종료
-    }
-  }
-}
-  
-void Send_Warning(String type){
-  char send_type[50];
-  // 일정 시간(interval)마다 데이터 전송
-  unsigned long currentMillis = millis();  
-  if (currentMillis - previousMillis >= interval) {
-  previousMillis = currentMillis; // 이전 시간 업데이트
-  sprintf(send_type, "%s", type.c_str());
-  Serial.write(send_type);
-   } 
 }
