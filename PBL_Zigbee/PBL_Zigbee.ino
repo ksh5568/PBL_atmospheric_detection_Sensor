@@ -4,10 +4,9 @@
 
 void setup()
 {
-  Serial.begin(9600);
-  // Initialize the GLCD 
-  GLCD.Init();
-  GLCD.SelectFont(System5x7);
+    Serial.begin(9600);
+    GLCD.Init();
+    GLCD.SelectFont(System5x7);
 }
 
 void loop()
@@ -15,7 +14,6 @@ void loop()
   if (Serial.available())
   {
     String receivedData = Serial.readString();
-    GLCD.print(receivedData + "Warning");
-    Serial.print(receivedData + "Warning");
+    GLCD.println(receivedData);
   }
 }
