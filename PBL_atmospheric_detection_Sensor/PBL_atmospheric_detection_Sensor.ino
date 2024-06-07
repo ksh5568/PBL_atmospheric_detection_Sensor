@@ -37,27 +37,24 @@ MQUnifiedsensor MQ5(Board, Voltage_Resolution, ADC_Bit_Resolution, Pin_C, Type_C
 MQUnifiedsensor MQ9(Board, Voltage_Resolution, ADC_Bit_Resolution, Pin_D, Type_D);
 MQUnifiedsensor MQ135(Board, Voltage_Resolution, ADC_Bit_Resolution, Pin_E, Type_E);
 
-File dataFile;
 swRTC rtc;
 
 const unsigned long interval = 2000;
 unsigned long previousMillis = 0;
 String msg;
-String sensorData;
 
-void setupSensor(MQUnifiedsensor& sensor, float ratioCleanAir, String sensorType);
-void printSensorData(MQUnifiedsensor& sensor, float a, float b, String dataType);
-void checkSensorConnection(float calcR0);
-void swrtc_setup();
+// LED pins
+const int redLED = 5;
+const int yellowLED = 4;
+const int whiteLED = 3;
+int hazardCount = 0;
 
 void setup() {
   Serial.begin(9600);
+  pinMode(redLED, OUTPUT);
+  pinMode(yellowLED, OUTPUT);
+  pinMode(whiteLED, OUTPUT);
 
-  if (!SD.begin(53)) { // SD카드 모듈을 초기화합니다.
-    Serial.println("initialization failed!"); // SD카드 모듈 초기화에 실패하면 에러를 출력합니다.
-    while (1);
-  }
-  
   setupSensor(MQ2, RatioMQ2CleanAir, "MQ-2");
   setupSensor(MQ3, RatioMQ3CleanAir, "MQ-3");
   setupSensor(MQ5, RatioMQ5CleanAir, "MQ-5");
@@ -66,102 +63,64 @@ void setup() {
 
   swrtc_setup();
 
-  dataFile = SD.open("dataFile.txt", FILE_WRITE);
-  if (dataFile){
-    dataFile.print("Date : ");
-    dataFile.print(rtc.getDay(), DEC);       //일 출력 
-    dataFile.print("/");
-    dataFile.print(rtc.getMonth(), DEC);     //월 출력
-    dataFile.print("/");
-    dataFile.println(rtc.getYear(), DEC);
-
-    dataFile.println("-------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    dataFile.println("|  Time  | Propane |  Benzene |  Hexane  |    H2    |  Alcohol |    LPG   |    CH4   |    CO    |    CO2   |  Toluen  |    NH4   |  Aceton  |");
-    dataFile.println("-------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    dataFile.close();
-    Serial.println("Data saved to SD card: dataFile.txt");
-    } else {
-    Serial.println("Error opening file");
-    }
-
   Serial.print("Date :");
-  Serial.print(rtc.getDay(), DEC);       //일 출력 
+  Serial.print(rtc.getDay(), DEC);
   Serial.print("/");
-  Serial.print(rtc.getMonth(), DEC);     //월 출력
+  Serial.print(rtc.getMonth(), DEC);
   Serial.print("/");
   Serial.println(rtc.getYear(), DEC);
-  Serial.println("---------------------------------------------------------------------------------------------------------------------------------------------------");
-  Serial.println("|  Time  | Propane |  Benzene |  Hexane  |    H2    |  Alcohol |    LPG   |    CH4   |    CO    |    CO2   |  Toluen  |    NH4   |  Aceton  |");
-  Serial.println("---------------------------------------------------------------------------------------------------------------------------------------------------");
-
-  delay(2000);
 }
   
 void loop() {
-  sensorData ="";
-
-  // MQ-2 센서 데이터 출력
-  printSensorData(MQ2, 658.71, -2.168, "Propane");
-
-  // MQ-3 센서 데이터 출력
-  printSensorData(MQ3, 4.8387, -2.68, "Benzene");
-  printSensorData(MQ3, 7585.3, -2.849, "Hexane");
-
-  // MQ-5 센서 데이터 출력
-  printSensorData(MQ5, 1163.8, -3.874, "H2");
-  printSensorData(MQ5, 97124, -4.918, "Alcohol");
-
-  // MQ-9 센서 데이터 출력
-  printSensorData(MQ9, 1000.5, -2.186, "LPG");
-  printSensorData(MQ9, 4269.6, -2.648, "CH4");
-  printSensorData(MQ9, 599.65, -2.244, "CO");
-
-  // MQ-135 센서 데이터 출력
-  printSensorData(MQ135, 110.47, -2.862, "CO2");
-  printSensorData(MQ135, 44.947, -3.445, "Toluen");
-  printSensorData(MQ135, 102.2, -2.473, "NH4");
-  printSensorData(MQ135, 34.668, -3.369, "Aceton");
+  hazardCount = 0;  // Reset hazard count on each loop iteration
+  MQ2.update();
+  MQ3.update();
+  MQ5.update();
+  MQ9.update();
+  MQ135.update();
 
   Serial.print("|  ");
-  Serial.print(rtc.getHours(), DEC);     //시간 출력
+  Serial.print(rtc.getHours(), DEC);
   Serial.print(":");
-  Serial.print(rtc.getMinutes(), DEC);   //분 출력
+  Serial.print(rtc.getMinutes(), DEC);
   Serial.print(":");
-  Serial.print(rtc.getSeconds(), DEC); //초 출력
-  Serial.print("  |");
-  Serial.println(sensorData); // 데이터 출력
+  Serial.print(rtc.getSeconds(), DEC);
+  Serial.println("  |");
 
-  // 데이터를 SD 카드에 저장
-  dataFile = SD.open("dataFile.txt", FILE_WRITE);
-  if (dataFile) {
-    dataFile.print("|  ");
-    dataFile.print(rtc.getHours(), DEC);     //시간 출력
-    dataFile.print(":"); 
-    dataFile.print(rtc.getMinutes(), DEC);   //분 출력
-    dataFile.print(":");
-    dataFile.print(rtc.getSeconds(), DEC); //초 출력
-    dataFile.print("  |");
-    dataFile.println(sensorData);  
-    dataFile.close();
-    Serial.println("Data saved to SD card: dataFile.txt");
-    } else {
-    Serial.println("Error opening file");
-    }
+  // Evaluate each sensor
+  printSensorData(MQ2, 1000.0, 658.71, -2.168, "Propane");
+  printSensorData(MQ3, 1.0, 4.8387, -2.68, "Benzene");
+  printSensorData(MQ3, 50.0, 7585.3, -2.849, "Hexane");
+  printSensorData(MQ5, 40000, 1163.8, -3.874, "H2");
+  printSensorData(MQ5, 1000.0, 97124, -4.918, "Alcohol");
+  printSensorData(MQ9, 1000.0, 1000.5, -2.186, "LPG");
+  printSensorData(MQ9, 5000.0, 4269.6, -2.648, "CH4");
+  printSensorData(MQ9, 35.0, 599.65, -2.244, "CO");
+  printSensorData(MQ135, 5000.0, 110.47, -2.862, "CO2");
+  printSensorData(MQ135, 100.0, 44.947, -3.445, "Toluen");
+  printSensorData(MQ135, 25.0, 102.2, -2.473, "NH4");
+  printSensorData(MQ135, 750.0, 34.668, -3.369, "Aceton");
 
-   msg = "Warning";
+  // Update LED status based on hazard count
+  if (hazardCount >= 3) {
+    digitalWrite(redLED, HIGH);
+    digitalWrite(yellowLED, LOW);
+    digitalWrite(whiteLED, LOW);
+  } else if (hazardCount > 0) {
+    digitalWrite(yellowLED, HIGH);
+    digitalWrite(redLED, LOW);
+    digitalWrite(whiteLED, LOW);
+  } else {
+    digitalWrite(whiteLED, HIGH);
+    digitalWrite(redLED, LOW);
+    digitalWrite(yellowLED, LOW);
+  }
 
-   char sendData[100];
-   // 일정 시간(interval)마다 데이터 전송
-   unsigned long currentMillis = millis();  
-   if (currentMillis - previousMillis >= interval) {
-    previousMillis = currentMillis; // 이전 시간 업데이트
-    sprintf(sendData, "%s", msg.c_str());
-    Serial.write(sendData);
-  }  
+  delay(1000); // Sampling frequency
 }
-  
+
 void setupSensor(MQUnifiedsensor& sensor, float ratioCleanAir, String sensorType) {
-  sensor.setRegressionMethod(1); //_PPM = a*ratio^b
+  sensor.setRegressionMethod(1); // _ppm = a * ratio^b
   sensor.init();
   
   float calcR0 = 0;
@@ -175,15 +134,7 @@ void setupSensor(MQUnifiedsensor& sensor, float ratioCleanAir, String sensorType
   
   checkSensorConnection(calcR0);
 }
-  
-void printSensorData(MQUnifiedsensor& sensor, float a, float b, String dataType) {
-  sensor.update();
-  sensor.setA(a); 
-  sensor.setB(b);
-  float reading = sensor.readSensor();
-  sensorData += padToWidth(String(reading, 2), 8) + " | ";
-}
-  
+
 void checkSensorConnection(float calcR0) {
   if (isinf(calcR0)) {
     Serial.println("Warning: Connection issue, R0 is infinite (Open circuit detected) please check your wiring and supply");
@@ -194,17 +145,33 @@ void checkSensorConnection(float calcR0) {
     while (1);
   }
 }
-  
-String padToWidth(String data, int width) {
-  while(data.length() < width) {
-    data = " " + data; // 왼쪽에 공백 추가
+
+void printSensorData(MQUnifiedsensor &sensor, float threshold, float a, float b, String gasType) {
+  String sensorData;
+  sensor.update();
+  sensor.setA(a);
+  sensor.setB(b);
+  float ppm = sensor.readSensor();
+  if (ppm > threshold) {  // 예시로 설정된 위험 수치입니다. 실제 수치로 교체해야 합니다.
+    hazardCount++;
   }
-  return data;
+  sensorData += gasType + " : " + ppm + "\n";
+  
+  msg = sensorData;
+  Serial.println(sensorData);
+  char sendData[100];
+   // 일정 시간(interval)마다 데이터 전송d
+  unsigned long currentMillis = millis();  
+   if (currentMillis - previousMillis >= interval) {
+    previousMillis = currentMillis; // 이전 시간 업데이트
+    sprintf(sendData, "%s", msg.c_str());
+    Serial.write(sendData);
+   }
 }
 
 void swrtc_setup() {
-  rtc.stopRTC();           //정지
-  rtc.setTime(0,0,0);    //시간, 분, 초 초기화
-  rtc.setDate(29,3,2024);  //일, 월, 년도 초기화 
-  rtc.startRTC();          //시작
+  rtc.stopRTC();          // 정지
+  rtc.setTime(0, 0, 0);   // 시간, 분, 초 초기화
+  rtc.setDate(16, 4, 2024); // 일, 월, 년도 초기화
+  rtc.startRTC();         // 시작
 }
